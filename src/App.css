@@ -1,18 +1,20 @@
-.App {
-  min-height: 100vh;
+import React from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import AppRouter from './routes/AppRouter';
+import { AuthProvider } from './context/AuthContext';
+import { ChatProvider } from './context/ChatContext';
+import './App.css';
+
+function App() {
+  return (
+    <BrowserRouter>
+      <AuthProvider>
+        <ChatProvider>
+          <AppRouter />
+        </ChatProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  );
 }
 
-/* Custom styles untuk React components */
-.glass-effect {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-}
-
-.gradient-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-}
-
-.gradient-secondary {
-  background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
-}
+export default App;
