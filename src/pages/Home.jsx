@@ -5,13 +5,14 @@ import {
   CheckCircle, Star, Users, MessageSquare, Twitter, 
   Mail, ExternalLink 
 } from 'lucide-react';
-import { getAnalytics } from '../services/api';
+import { getRealTimeStats } from '../services/tracking';
 
 const Home = () => {
-  // Real-time stats dari database - REAL DATA, bukan fake increment
+  // Real-time stats from ACTUAL USER ACTIVITY
   const [stats, setStats] = useState({
+    totalUsers: 0,
     activeUsers: 0,
-    chatsGenerated: 0,
+    totalChats: 0,
     codeSnippets: 0,
     userRating: 0
   });
@@ -24,18 +25,19 @@ const Home = () => {
     logoUrl: ''
   });
 
-  // Fetch REAL stats dari database setiap 30 detik
+  // Fetch REAL stats from activity tracking
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchStats = () => {
       try {
-        const data = await getAnalytics();
+        // Get real-time stats from tracking system
+        const realStats = getRealTimeStats();
         
-        // Set REAL data from database
         setStats({
-          activeUsers: data.overview?.activeUsers || 0,
-          chatsGenerated: data.overview?.totalChats || 0,
-          codeSnippets: Math.floor((data.overview?.totalChats || 0) * 0.6),
-          userRating: 4.9
+          totalUsers: realStats.totalUsers,
+          activeUsers: realStats.activeUsers,
+          totalChats: realStats.totalChats,
+          codeSnippets: realStats.codeSnippets,
+          userRating: realStats.userRating
         });
         
         setLoading(false);
@@ -47,8 +49,8 @@ const Home = () => {
 
     fetchStats();
     
-    // Refresh real stats setiap 30 detik
-    const interval = setInterval(fetchStats, 30000);
+    // Refresh stats every 10 seconds to show real-time changes
+    const interval = setInterval(fetchStats, 10000);
     return () => clearInterval(interval);
   }, []);
 
@@ -173,8 +175,9 @@ const Home = () => {
           </Link>
         </div>
 
-        {/* Real-time Stats from ACTUAL DATABASE */}
+        {/* Real-time Stats from ACTUAL USER ACTIVITY */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-4xl mx-auto">
+          {/* Active Users - Real count of users currently online */}
           <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all">
             <div className="flex justify-center mb-3 text-purple-400">
               <Users className="w-6 h-6" />
@@ -183,7 +186,7 @@ const Home = () => {
               {loading ? (
                 <div className="h-8 bg-white/10 rounded animate-pulse"></div>
               ) : (
-                `${stats.activeUsers.toLocaleString()}+`
+                `${stats.activeUsers}+`
               )}
             </div>
             <div className="text-sm text-gray-400">Active Users</div>
@@ -194,6 +197,7 @@ const Home = () => {
             )}
           </div>
 
+          {/* Total Chats - Real count from user messages */}
           <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all">
             <div className="flex justify-center mb-3 text-blue-400">
               <MessageSquare className="w-6 h-6" />
@@ -202,7 +206,7 @@ const Home = () => {
               {loading ? (
                 <div className="h-8 bg-white/10 rounded animate-pulse"></div>
               ) : (
-                `${stats.chatsGenerated.toLocaleString()}+`
+                `${stats.totalChats.toLocaleString()}+`
               )}
             </div>
             <div className="text-sm text-gray-400">Chats Generated</div>
@@ -213,6 +217,7 @@ const Home = () => {
             )}
           </div>
 
+          {/* Code Snippets - Real count from AI responses with code */}
           <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all">
             <div className="flex justify-center mb-3 text-green-400">
               <Code className="w-6 h-6" />
@@ -232,6 +237,7 @@ const Home = () => {
             )}
           </div>
 
+          {/* User Rating - Real average from user ratings */}
           <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all">
             <div className="flex justify-center mb-3 text-yellow-400">
               <Star className="w-6 h-6" />
@@ -251,6 +257,13 @@ const Home = () => {
             )}
           </div>
         </div>
+
+        {/* Info about real-time tracking */}
+        {!loading && (
+          <div className="mt-8 text-xs text-gray-500">
+            <p>📊 Stats updated real-time from actual user activity • Last update: {new Date().toLocaleTimeString()}</p>
+          </div>
+        )}
       </section>
 
       {/* Features Section */}
@@ -342,7 +355,7 @@ end`}
             Siap Meningkatkan Development Anda?
           </h2>
           <p className="text-lg mb-8 text-blue-100">
-            Bergabung dengan ribuan developer yang sudah menggunakan Roblox AI Studio
+            Bergabung dengan {stats.totalUsers > 0 ? stats.totalUsers : 'ribuan'} developer yang sudah menggunakan Roblox AI Studio
           </p>
           <Link 
             to="/register"
@@ -354,11 +367,10 @@ end`}
         </div>
       </section>
 
-      {/* Enhanced Footer - NO GITHUB */}
+      {/* Footer */}
       <footer className="border-t border-white/10 py-12 mt-20 bg-black/20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-            {/* Company Info */}
             <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
                 {siteConfig.logoUrl ? (
@@ -388,61 +400,26 @@ end`}
               </div>
             </div>
 
-            {/* Links */}
             <div>
               <h4 className="font-semibold mb-4 text-purple-400">Navigasi</h4>
               <ul className="space-y-3 text-sm text-gray-400">
-                <li>
-                  <Link to="/login" className="hover:text-purple-400 transition-colors">
-                    Login
-                  </Link>
-                </li>
-                <li>
-                  <Link to="/register" className="hover:text-purple-400 transition-colors">
-                    Register
-                  </Link>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-purple-400 transition-colors flex items-center gap-2">
-                    Documentation
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-purple-400 transition-colors flex items-center gap-2">
-                    API Reference
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </li>
+                <li><Link to="/login" className="hover:text-purple-400 transition-colors">Login</Link></li>
+                <li><Link to="/register" className="hover:text-purple-400 transition-colors">Register</Link></li>
+                <li><a href="#" className="hover:text-purple-400 transition-colors flex items-center gap-2">Documentation<ExternalLink className="w-3 h-3" /></a></li>
+                <li><a href="#" className="hover:text-purple-400 transition-colors flex items-center gap-2">API Reference<ExternalLink className="w-3 h-3" /></a></li>
               </ul>
             </div>
 
-            {/* Community */}
             <div>
               <h4 className="font-semibold mb-4 text-purple-400">Komunitas</h4>
               <ul className="space-y-3 text-sm text-gray-400">
-                <li>
-                  <a href="#" className="hover:text-purple-400 transition-colors flex items-center gap-2">
-                    Discord Server
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-purple-400 transition-colors flex items-center gap-2">
-                    Twitter
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-purple-400 transition-colors">
-                    Support
-                  </a>
-                </li>
+                <li><a href="#" className="hover:text-purple-400 transition-colors flex items-center gap-2">Discord Server<ExternalLink className="w-3 h-3" /></a></li>
+                <li><a href="#" className="hover:text-purple-400 transition-colors flex items-center gap-2">Twitter<ExternalLink className="w-3 h-3" /></a></li>
+                <li><a href="#" className="hover:text-purple-400 transition-colors">Support</a></li>
               </ul>
             </div>
           </div>
 
-          {/* Bottom Footer */}
           <div className="border-t border-white/10 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-gray-400">
             <div className="flex items-center gap-2">
               <p>© {new Date().getFullYear()} {siteConfig.siteName}</p>
