@@ -1,6 +1,6 @@
 # https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Allow: /
-Disallow: /admin/
+Disallow:
 
-Sitemap: https://roblox-ai-studio.vercel.app/sitemap.xml
+# Sitemap
+Sitemap: https://airosu.vercel.app/sitemap.xml
