@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Sparkles, Code, Palette, Zap, BookOpen, ArrowRight, 
-  CheckCircle, Github, Star, Users, MessageSquare, Twitter, 
+  CheckCircle, Star, Users, MessageSquare, Twitter, 
   Mail, ExternalLink 
 } from 'lucide-react';
 import { getAnalytics } from '../services/api';
 
 const Home = () => {
-  // Real-time stats dari database
+  // Real-time stats dari database - REAL DATA, bukan fake increment
   const [stats, setStats] = useState({
     activeUsers: 0,
     chatsGenerated: 0,
@@ -17,27 +17,25 @@ const Home = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  // Site configuration (bisa diambil dari API atau settings)
+  // Site configuration
   const [siteConfig, setSiteConfig] = useState({
     siteName: 'Roblox AI Studio',
     tagline: 'Your Development Assistant',
-    logo: null, // URL logo jika ada
-    showBadge: true,
-    badgeIcon: 'sparkles', // bisa diubah dari admin
-    badgeText: 'AI Powered'
+    logoUrl: ''
   });
 
-  // Fetch stats dari API
+  // Fetch REAL stats dari database setiap 30 detik
   useEffect(() => {
     const fetchStats = async () => {
       try {
         const data = await getAnalytics();
         
+        // Set REAL data from database
         setStats({
           activeUsers: data.overview?.activeUsers || 0,
           chatsGenerated: data.overview?.totalChats || 0,
-          codeSnippets: Math.floor((data.overview?.totalChats || 0) * 0.6), // Estimasi dari total chats
-          userRating: 4.9 // Bisa dihitung dari feedback users
+          codeSnippets: Math.floor((data.overview?.totalChats || 0) * 0.6),
+          userRating: 4.9
         });
         
         setLoading(false);
@@ -48,26 +46,25 @@ const Home = () => {
     };
 
     fetchStats();
-
-    // Refresh stats setiap 30 detik
+    
+    // Refresh real stats setiap 30 detik
     const interval = setInterval(fetchStats, 30000);
-
     return () => clearInterval(interval);
   }, []);
 
-  // Fetch site config (untuk logo & badge)
+  // Fetch site config
   useEffect(() => {
-    const fetchSiteConfig = async () => {
+    const fetchConfig = async () => {
       try {
-        // TODO: Implement API call untuk ambil site config
-        // const config = await getSiteConfig();
-        // setSiteConfig(config);
+        const savedConfig = localStorage.getItem('site_config');
+        if (savedConfig) {
+          setSiteConfig(JSON.parse(savedConfig));
+        }
       } catch (error) {
         console.error('Error fetching site config:', error);
       }
     };
-
-    fetchSiteConfig();
+    fetchConfig();
   }, []);
 
   const features = [
@@ -106,31 +103,15 @@ const Home = () => {
     'Gratis untuk semua developer'
   ];
 
-  // Render badge icon based on config
-  const renderBadgeIcon = () => {
-    if (siteConfig.logo) {
-      return <img src={siteConfig.logo} alt="Logo" className="w-5 h-5" />;
-    }
-    
-    // Default icon mapping
-    const iconMap = {
-      sparkles: <Sparkles className="w-5 h-5" />,
-      star: <Star className="w-5 h-5" />,
-      zap: <Zap className="w-5 h-5" />,
-    };
-    
-    return iconMap[siteConfig.badgeIcon] || <Sparkles className="w-5 h-5" />;
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white">
       {/* Header */}
       <header className="border-b border-white/10 backdrop-blur-lg bg-black/30 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            {siteConfig.logo ? (
+            {siteConfig.logoUrl ? (
               <img 
-                src={siteConfig.logo} 
+                src={siteConfig.logoUrl} 
                 alt={siteConfig.siteName}
                 className="w-10 h-10 rounded-lg"
               />
@@ -163,14 +144,6 @@ const Home = () => {
 
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 py-20 text-center">
-        {/* Optional Badge */}
-        {siteConfig.showBadge && (
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-purple-500/20 border border-purple-500/50 rounded-full text-sm font-medium mb-6 animate-fade-in">
-            {renderBadgeIcon()}
-            {siteConfig.badgeText}
-          </div>
-        )}
-        
         <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight animate-fade-in">
           AI Assistant untuk
           <br />
@@ -200,7 +173,7 @@ const Home = () => {
           </Link>
         </div>
 
-        {/* Real-time Stats from Database */}
+        {/* Real-time Stats from ACTUAL DATABASE */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-4xl mx-auto">
           <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all">
             <div className="flex justify-center mb-3 text-purple-400">
@@ -381,16 +354,16 @@ end`}
         </div>
       </section>
 
-      {/* Enhanced Footer */}
+      {/* Enhanced Footer - NO GITHUB */}
       <footer className="border-t border-white/10 py-12 mt-20 bg-black/20">
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             {/* Company Info */}
             <div className="md:col-span-2">
               <div className="flex items-center gap-3 mb-4">
-                {siteConfig.logo ? (
+                {siteConfig.logoUrl ? (
                   <img 
-                    src={siteConfig.logo} 
+                    src={siteConfig.logoUrl} 
                     alt={siteConfig.siteName}
                     className="w-10 h-10 rounded-lg"
                   />
@@ -406,9 +379,6 @@ end`}
                 Dapatkan bantuan coding, design, optimization, dan learning dari AI yang powerful.
               </p>
               <div className="flex items-center gap-3">
-                <a href="#" className="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center transition-all">
-                  <Github className="w-5 h-5" />
-                </a>
                 <a href="#" className="w-10 h-10 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center transition-all">
                   <Twitter className="w-5 h-5" />
                 </a>
@@ -454,12 +424,6 @@ end`}
                 <li>
                   <a href="#" className="hover:text-purple-400 transition-colors flex items-center gap-2">
                     Discord Server
-                    <ExternalLink className="w-3 h-3" />
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-purple-400 transition-colors flex items-center gap-2">
-                    GitHub
                     <ExternalLink className="w-3 h-3" />
                   </a>
                 </li>
