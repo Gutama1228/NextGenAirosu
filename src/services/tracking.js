@@ -1,252 +1,136 @@
 // ========================================
 // FILE: src/services/tracking.js
-// Real-time Analytics Tracking Service
+// Real-time Analytics Tracking Service (FIXED)
 // ========================================
 
 /**
- * Track user activity in real-time
+ * Get real-time statistics from localStorage
  */
-export const trackActivity = {
-  /**
-   * Track user login
-   */
-  login: (userId) => {
-    const activity = {
-      userId,
-      type: 'login',
-      timestamp: Date.now()
-    };
-    
-    // Save to localStorage for tracking
-    localStorage.setItem('last_activity', JSON.stringify(activity));
-    
-    // Update active users count
-    updateActiveUsers(userId);
-  },
+export const getStats = () => {
+  return {
+    totalUsers: parseInt(localStorage.getItem('total_users') || '0'),
+    activeUsers: parseInt(localStorage.getItem('active_users') || '0'),
+    totalChats: parseInt(localStorage.getItem('total_chats') || '0'),
+    codeSnippets: parseInt(localStorage.getItem('code_snippets') || '0'),
+    userRating: parseFloat(localStorage.getItem('user_rating') || '4.9'),
+  };
+};
 
-  /**
-   * Track new chat message
-   */
-  chat: (userId, message, containsCode = false) => {
-    // Get current stats
-    const stats = getLocalStats();
-    
-    // Increment total chats
-    stats.totalChats = (stats.totalChats || 0) + 1;
-    
-    // Increment code snippets if message contains code
-    if (containsCode) {
-      stats.codeSnippets = (stats.codeSnippets || 0) + 1;
-    }
-    
-    // Save updated stats
-    saveLocalStats(stats);
-    
-    // Track activity timestamp
-    updateUserActivity(userId);
-  },
-
-  /**
-   * Track user registration
-   */
-  register: (userId) => {
-    const stats = getLocalStats();
-    stats.totalUsers = (stats.totalUsers || 0) + 1;
-    saveLocalStats(stats);
-    
-    // Also track as login
-    trackActivity.login(userId);
-  },
-
-  /**
-   * Get real-time statistics
-   */
-  getStats: () => {
-    const stats = getLocalStats();
-    const activeUsers = getActiveUsersCount();
-    
-    return {
-      totalUsers: stats.totalUsers || 0,
-      activeUsers: activeUsers,
-      totalChats: stats.totalChats || 0,
-      codeSnippets: stats.codeSnippets || 0,
-      userRating: 4.9 // Fixed or can be made dynamic
-    };
+/**
+ * Track user activity
+ */
+export const trackActivity = (activityType) => {
+  switch(activityType) {
+    case 'register':
+      const totalUsers = parseInt(localStorage.getItem('total_users') || '0');
+      const newTotal = totalUsers + 1;
+      localStorage.setItem('total_users', newTotal.toString());
+      localStorage.setItem('active_users', newTotal.toString());
+      break;
+      
+    case 'login':
+      // Update active users timestamp
+      const userId = localStorage.getItem('current_user_id');
+      if (userId) {
+        updateActiveUser(userId);
+      }
+      break;
+      
+    case 'chat':
+      const totalChats = parseInt(localStorage.getItem('total_chats') || '0');
+      localStorage.setItem('total_chats', (totalChats + 1).toString());
+      break;
+      
+    case 'code':
+      const codeSnippets = parseInt(localStorage.getItem('code_snippets') || '0');
+      localStorage.setItem('code_snippets', (codeSnippets + 1).toString());
+      break;
+      
+    default:
+      break;
   }
 };
 
 /**
- * Update active users list
+ * Update active user timestamp
  */
-const updateActiveUsers = (userId) => {
-  const activeUsers = getActiveUsers();
-  const now = Date.now();
-  
-  // Add or update user's last activity
-  activeUsers[userId] = now;
-  
-  // Clean up users inactive for more than 24 hours
-  Object.keys(activeUsers).forEach(id => {
-    if (now - activeUsers[id] > 24 * 60 * 60 * 1000) {
-      delete activeUsers[id];
-    }
-  });
-  
-  localStorage.setItem('active_users', JSON.stringify(activeUsers));
-};
-
-/**
- * Update user activity timestamp
- */
-const updateUserActivity = (userId) => {
-  const now = Date.now();
-  const activeUsers = getActiveUsers();
-  activeUsers[userId] = now;
-  localStorage.setItem('active_users', JSON.stringify(activeUsers));
-};
-
-/**
- * Get active users object
- */
-const getActiveUsers = () => {
+const updateActiveUser = (userId) => {
   try {
-    const data = localStorage.getItem('active_users');
-    return data ? JSON.parse(data) : {};
-  } catch {
-    return {};
+    const activeUsers = JSON.parse(localStorage.getItem('active_users_list') || '{}');
+    activeUsers[userId] = Date.now();
+    
+    // Clean up users inactive for more than 24 hours
+    const now = Date.now();
+    const oneDayAgo = now - (24 * 60 * 60 * 1000);
+    
+    Object.keys(activeUsers).forEach(id => {
+      if (activeUsers[id] < oneDayAgo) {
+        delete activeUsers[id];
+      }
+    });
+    
+    localStorage.setItem('active_users_list', JSON.stringify(activeUsers));
+    localStorage.setItem('active_users', Object.keys(activeUsers).length.toString());
+  } catch (error) {
+    console.error('Error updating active user:', error);
   }
-};
-
-/**
- * Get count of active users (last 24 hours)
- */
-const getActiveUsersCount = () => {
-  const activeUsers = getActiveUsers();
-  const now = Date.now();
-  const oneDayAgo = now - (24 * 60 * 60 * 1000);
-  
-  return Object.values(activeUsers).filter(timestamp => timestamp > oneDayAgo).length;
-};
-
-/**
- * Get statistics from localStorage
- */
-const getLocalStats = () => {
-  try {
-    const data = localStorage.getItem('site_stats');
-    return data ? JSON.parse(data) : {
-      totalUsers: 0,
-      totalChats: 0,
-      codeSnippets: 0
-    };
-  } catch {
-    return {
-      totalUsers: 0,
-      totalChats: 0,
-      codeSnippets: 0
-    };
-  }
-};
-
-/**
- * Save statistics to localStorage
- */
-const saveLocalStats = (stats) => {
-  localStorage.setItem('site_stats', JSON.stringify(stats));
 };
 
 /**
  * Detect if message contains code
  */
 export const detectCode = (message) => {
-  // Check for common code patterns
+  if (!message) return false;
+  
   const codePatterns = [
-    /```[\s\S]*?```/g, // Code blocks
-    /`[^`]+`/g, // Inline code
-    /function\s+\w+\s*\(/g, // Function declarations
-    /local\s+\w+\s*=/g, // Lua local variables
-    /if\s+.+\s+then/g, // Lua if statements
-    /for\s+.+\s+do/g, // Lua for loops
-    /while\s+.+\s+do/g, // Lua while loops
+    /```[\s\S]*?```/g,        // Code blocks
+    /`[^`]+`/g,                // Inline code
+    /function\s+\w+\s*\(/g,    // Function declarations
+    /local\s+\w+\s*=/g,        // Lua local variables
+    /if\s+.+\s+then/gi,        // Lua if statements
+    /for\s+.+\s+do/gi,         // Lua for loops
+    /while\s+.+\s+do/gi,       // Lua while loops
+    /\w+\s*:\s*function/g,     // Method declarations
   ];
   
   return codePatterns.some(pattern => pattern.test(message));
 };
 
-// ========================================
-// INTEGRATION EXAMPLES
-// ========================================
-
-/*
-// In AuthContext.jsx - login function:
-const login = async (email, password) => {
-  try {
-    const userData = await apiLogin(email, password);
-    
-    localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('token', userData.token);
-    localStorage.setItem('current_user_id', userData.id);
-    
-    setUser(userData);
-    
-    // ✅ Track login activity
-    trackActivity.login(userData.id);
-    
-    return { success: true, user: userData };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-};
-
-// In AuthContext.jsx - register function:
-const register = async (name, email, password) => {
-  try {
-    const userData = await apiRegister(name, email, password);
-    
-    localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('token', userData.token);
-    localStorage.setItem('current_user_id', userData.id);
-    
-    setUser(userData);
-    
-    // ✅ Track registration
-    trackActivity.register(userData.id);
-    
-    return { success: true, user: userData };
-  } catch (error) {
-    return { success: false, error: error.message };
-  }
-};
-
-// In ChatContext.jsx - sendMessage function:
-const sendMessage = async (message) => {
-  try {
-    // ... send message logic
-    
-    const userId = localStorage.getItem('current_user_id');
-    const containsCode = detectCode(message);
-    
-    // ✅ Track chat activity
-    trackActivity.chat(userId, message, containsCode);
-    
-    // ... rest of the code
-  } catch (error) {
-    console.error('Error:', error);
-  }
-};
-
-// In Home.jsx - Fetch real-time stats:
-useEffect(() => {
-  const fetchStats = () => {
-    // ✅ Get real-time stats from tracking
-    const realTimeStats = trackActivity.getStats();
-    setStats(realTimeStats);
-  };
-
-  fetchStats();
+/**
+ * Track chat message (with code detection)
+ */
+export const trackChatMessage = (message) => {
+  // Track the chat
+  trackActivity('chat');
   
-  // Refresh every 5 seconds for real-time feel
-  const interval = setInterval(fetchStats, 5000);
-  return () => clearInterval(interval);
-}, []);
-*/
+  // Check if message contains code
+  if (detectCode(message)) {
+    trackActivity('code');
+  }
+};
+
+/**
+ * Initialize stats if first time
+ */
+export const initializeStats = () => {
+  if (!localStorage.getItem('stats_initialized')) {
+    localStorage.setItem('total_users', '0');
+    localStorage.setItem('active_users', '0');
+    localStorage.setItem('total_chats', '0');
+    localStorage.setItem('code_snippets', '0');
+    localStorage.setItem('user_rating', '4.9');
+    localStorage.setItem('active_users_list', '{}');
+    localStorage.setItem('stats_initialized', 'true');
+  }
+};
+
+// Auto-initialize on import
+initializeStats();
+
+export default {
+  getStats,
+  trackActivity,
+  trackChatMessage,
+  detectCode,
+  initializeStats,
+};
