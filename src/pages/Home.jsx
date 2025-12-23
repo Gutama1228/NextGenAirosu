@@ -5,7 +5,7 @@ import {
   CheckCircle, Star, Users, MessageSquare, Twitter, 
   Mail, ExternalLink 
 } from 'lucide-react';
-import { trackActivity } from '../services/tracking';
+import { getStats } from '../services/tracking';
 
 const Home = () => {
   // Real-time stats from actual user activity
@@ -29,7 +29,7 @@ const Home = () => {
     const fetchStats = () => {
       try {
         // Get real-time stats from local tracking
-        const realTimeStats = trackActivity.getStats();
+        const realTimeStats = getStats();
         setStats(realTimeStats);
       } catch (error) {
         console.error('Error fetching stats:', error);
