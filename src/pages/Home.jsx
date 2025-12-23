@@ -5,18 +5,17 @@ import {
   CheckCircle, Star, Users, MessageSquare, Twitter, 
   Mail, ExternalLink 
 } from 'lucide-react';
-import { getAnalytics } from '../services/api';
+import { trackActivity } from '../services/tracking';
 
 const Home = () => {
-  // Real-time stats from database
+  // Real-time stats from actual user activity
   const [stats, setStats] = useState({
     totalUsers: 0,
     activeUsers: 0,
     totalChats: 0,
     codeSnippets: 0,
-    userRating: 0
+    userRating: 4.9
   });
-  const [loading, setLoading] = useState(true);
 
   // Site configuration
   const [siteConfig, setSiteConfig] = useState({
@@ -25,31 +24,23 @@ const Home = () => {
     logoUrl: ''
   });
 
-  // Fetch stats from API
+  // ✅ Fetch REAL-TIME stats from tracking service
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchStats = () => {
       try {
-        const data = await getAnalytics();
-        
-        setStats({
-          totalUsers: data.overview?.totalUsers || 0,
-          activeUsers: data.overview?.activeUsers || 0,
-          totalChats: data.overview?.totalChats || 0,
-          codeSnippets: Math.floor((data.overview?.totalChats || 0) * 0.6),
-          userRating: 4.9
-        });
-        
-        setLoading(false);
+        // Get real-time stats from local tracking
+        const realTimeStats = trackActivity.getStats();
+        setStats(realTimeStats);
       } catch (error) {
         console.error('Error fetching stats:', error);
-        setLoading(false);
       }
     };
 
+    // Initial fetch
     fetchStats();
     
-    // Refresh stats every 30 seconds
-    const interval = setInterval(fetchStats, 30000);
+    // Refresh every 5 seconds for real-time updates
+    const interval = setInterval(fetchStats, 5000);
     return () => clearInterval(interval);
   }, []);
 
@@ -174,82 +165,65 @@ const Home = () => {
           </Link>
         </div>
 
-        {/* Stats from Database */}
+        {/* Real-time Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-4xl mx-auto">
+          {/* Active Users */}
           <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all">
             <div className="flex justify-center mb-3 text-purple-400">
               <Users className="w-6 h-6" />
             </div>
             <div className="text-2xl font-bold mb-1 transition-all duration-500">
-              {loading ? (
-                <div className="h-8 bg-white/10 rounded animate-pulse"></div>
-              ) : (
-                `${stats.activeUsers.toLocaleString()}+`
-              )}
+              {stats.activeUsers > 0 ? `${stats.activeUsers}` : '0'}
             </div>
             <div className="text-sm text-gray-400">Active Users</div>
-            {!loading && (
+            {stats.activeUsers > 0 && (
               <div className="mt-2 flex items-center justify-center gap-1 text-xs text-green-400">
                 <span className="animate-pulse">●</span> Live
               </div>
             )}
           </div>
 
+          {/* Total Chats */}
           <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all">
             <div className="flex justify-center mb-3 text-blue-400">
               <MessageSquare className="w-6 h-6" />
             </div>
             <div className="text-2xl font-bold mb-1 transition-all duration-500">
-              {loading ? (
-                <div className="h-8 bg-white/10 rounded animate-pulse"></div>
-              ) : (
-                `${stats.totalChats.toLocaleString()}+`
-              )}
+              {stats.totalChats > 0 ? `${stats.totalChats.toLocaleString()}` : '0'}
             </div>
             <div className="text-sm text-gray-400">Chats Generated</div>
-            {!loading && (
+            {stats.totalChats > 0 && (
               <div className="mt-2 flex items-center justify-center gap-1 text-xs text-green-400">
                 <span className="animate-pulse">●</span> Live
               </div>
             )}
           </div>
 
+          {/* Code Snippets */}
           <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all">
             <div className="flex justify-center mb-3 text-green-400">
               <Code className="w-6 h-6" />
             </div>
             <div className="text-2xl font-bold mb-1 transition-all duration-500">
-              {loading ? (
-                <div className="h-8 bg-white/10 rounded animate-pulse"></div>
-              ) : (
-                `${stats.codeSnippets.toLocaleString()}+`
-              )}
+              {stats.codeSnippets > 0 ? `${stats.codeSnippets.toLocaleString()}` : '0'}
             </div>
             <div className="text-sm text-gray-400">Code Snippets</div>
-            {!loading && (
+            {stats.codeSnippets > 0 && (
               <div className="mt-2 flex items-center justify-center gap-1 text-xs text-green-400">
                 <span className="animate-pulse">●</span> Live
               </div>
             )}
           </div>
 
+          {/* User Rating */}
           <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all">
             <div className="flex justify-center mb-3 text-yellow-400">
               <Star className="w-6 h-6" />
             </div>
             <div className="text-2xl font-bold mb-1 transition-all duration-500">
-              {loading ? (
-                <div className="h-8 bg-white/10 rounded animate-pulse"></div>
-              ) : (
-                `${stats.userRating}/5`
-              )}
+              {stats.userRating}/5
             </div>
             <div className="text-sm text-gray-400">User Rating</div>
-            {!loading && (
-              <div className="mt-2 flex items-center justify-center gap-1 text-xs text-green-400">
-                <span className="animate-pulse">●</span> Live
-              </div>
-            )}
           </div>
         </div>
       </section>
@@ -342,7 +316,7 @@ end`}
             Siap Meningkatkan Development Anda?
           </h2>
           <p className="text-lg mb-8 text-blue-100">
-            Bergabung dengan ribuan developer yang sudah menggunakan Roblox AI Studio
+            Bergabung dengan {stats.totalUsers > 0 ? stats.totalUsers : 'ribuan'} developer yang sudah menggunakan Roblox AI Studio
           </p>
           <Link 
             to="/register"
