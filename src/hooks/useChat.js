@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { sendMessage as sendMessageToAI } from '../services/anthropic';
 import { saveChatHistory, getChatHistory } from '../services/api';
-import { trackChatMessage, trackCodeGeneration } from '../services/tracking';
+// ✅ REMOVED: import { trackChatMessage, trackCodeGeneration } from '../services/tracking';
 
 export const useChat = () => {
   const [messages, setMessages] = useState([]);
@@ -39,15 +39,6 @@ export const useChat = () => {
     setError(null);
 
     try {
-      // Get user ID
-      const userId = localStorage.getItem('current_user_id') || 'anonymous';
-      
-      // Track the chat message
-      trackChatMessage(userId, {
-        message: content.trim(),
-        category: category
-      });
-
       // Send to AI
       const response = await sendMessageToAI(
         content.trim(),
@@ -60,18 +51,6 @@ export const useChat = () => {
         content: response,
         timestamp: new Date().toISOString()
       };
-
-      // Check if response contains code blocks and track them
-      const codeBlockCount = (response.match(/```/g) || []).length / 2;
-      if (codeBlockCount > 0) {
-        // Track each code block
-        for (let i = 0; i < codeBlockCount; i++) {
-          trackCodeGeneration(userId, {
-            category: category,
-            timestamp: new Date().toISOString()
-          });
-        }
-      }
 
       const updatedMessages = [...messages, userMessage, assistantMessage];
       setMessages(updatedMessages);
