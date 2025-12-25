@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { DEMO_CREDENTIALS, API_ENDPOINTS } from '../utils/constants';
-import { trackActivity } from './tracking';
+// ✅ REMOVED: import { trackActivity } from './tracking';
 
 // Create axios instance
 const api = axios.create({
@@ -183,23 +183,19 @@ export const deleteUser = async (id) => {
 export const getAnalytics = async () => {
   return new Promise((resolve) => {
     setTimeout(() => {
-      // ✅ GET REAL STATS from tracking.js
-      const { getStats } = require('./tracking');
-      const realStats = getStats();
-      
       const analytics = {
         overview: {
-          totalUsers: realStats.totalUsers,
-          activeUsers: realStats.activeUsers,
-          totalChats: realStats.totalChats,
+          totalUsers: 0,
+          activeUsers: 0,
+          totalChats: 0,
           avgResponseTime: 1.2,
         },
         userGrowth: [
-          { month: 'Jan', users: Math.floor(realStats.totalUsers * 0.2), chats: Math.floor(realStats.totalChats * 0.2) },
-          { month: 'Feb', users: Math.floor(realStats.totalUsers * 0.4), chats: Math.floor(realStats.totalChats * 0.4) },
-          { month: 'Mar', users: Math.floor(realStats.totalUsers * 0.6), chats: Math.floor(realStats.totalChats * 0.6) },
-          { month: 'Apr', users: Math.floor(realStats.totalUsers * 0.8), chats: Math.floor(realStats.totalChats * 0.8) },
-          { month: 'May', users: realStats.totalUsers, chats: realStats.totalChats },
+          { month: 'Jan', users: 0, chats: 0 },
+          { month: 'Feb', users: 0, chats: 0 },
+          { month: 'Mar', users: 0, chats: 0 },
+          { month: 'Apr', users: 0, chats: 0 },
+          { month: 'May', users: 0, chats: 0 },
         ],
         categoryUsage: [
           { name: 'Coding', value: 4200, color: '#3b82f6' },
