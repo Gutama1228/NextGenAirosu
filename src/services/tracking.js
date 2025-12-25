@@ -110,17 +110,29 @@ export const trackChatMessage = (message) => {
 };
 
 /**
- * Initialize stats if first time
+ * Initialize stats - Auto-clear fake data
  */
 export const initializeStats = () => {
-  if (!localStorage.getItem('stats_initialized')) {
+  const currentVersion = 'v2.0'; // Version untuk tracking system baru
+  const savedVersion = localStorage.getItem('tracking_version');
+  
+  // Jika version berbeda atau belum ada, reset semua data
+  if (savedVersion !== currentVersion) {
+    console.log('🔄 Migrating to new tracking system...');
+    
+    // Clear old fake data
+    localStorage.removeItem('stats_initialized');
+    
+    // Initialize with REAL starting values (0)
     localStorage.setItem('total_users', '0');
     localStorage.setItem('active_users', '0');
     localStorage.setItem('total_chats', '0');
     localStorage.setItem('code_snippets', '0');
     localStorage.setItem('user_rating', '4.9');
     localStorage.setItem('active_users_list', '{}');
-    localStorage.setItem('stats_initialized', 'true');
+    localStorage.setItem('tracking_version', currentVersion);
+    
+    console.log('✅ Tracking system initialized with real data');
   }
 };
 
