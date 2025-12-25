@@ -127,10 +127,18 @@ export const initializeStats = () => {
 // Auto-initialize on import
 initializeStats();
 
+/**
+ * Alias for trackActivity('code') - for backward compatibility
+ */
+export const trackCodeGeneration = () => {
+  trackActivity('code');
+};
+
 export default {
   getStats,
   trackActivity,
   trackChatMessage,
+  trackCodeGeneration,
   detectCode,
   initializeStats,
 };
