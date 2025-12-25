@@ -2,47 +2,16 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { 
   Sparkles, Code, Palette, Zap, BookOpen, ArrowRight, 
-  CheckCircle, Star, Users, MessageSquare, Twitter, 
-  Mail, ExternalLink 
+  CheckCircle, Twitter, Mail, ExternalLink 
 } from 'lucide-react';
-import { getStats } from '../services/tracking';
 
 const Home = () => {
-  // Real-time stats from actual user activity
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    activeUsers: 0,
-    totalChats: 0,
-    codeSnippets: 0,
-    userRating: 4.9
-  });
-
   // Site configuration
   const [siteConfig, setSiteConfig] = useState({
     siteName: 'Roblox AI Studio',
     tagline: 'Your Development Assistant',
     logoUrl: ''
   });
-
-  // ✅ Fetch REAL-TIME stats from tracking service
-  useEffect(() => {
-    const fetchStats = () => {
-      try {
-        // Get real-time stats from local tracking
-        const realTimeStats = getStats();
-        setStats(realTimeStats);
-      } catch (error) {
-        console.error('Error fetching stats:', error);
-      }
-    };
-
-    // Initial fetch
-    fetchStats();
-    
-    // Refresh every 5 seconds for real-time updates
-    const interval = setInterval(fetchStats, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Fetch site config
   useEffect(() => {
@@ -136,20 +105,20 @@ const Home = () => {
 
       {/* Hero Section */}
       <section className="max-w-7xl mx-auto px-4 py-20 text-center">
-        <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight animate-fade-in">
+        <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
           AI Assistant untuk
           <br />
-          <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent animate-gradient">
+          <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
             Roblox Developers
           </span>
         </h1>
         
-        <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-10 animate-fade-in">
+        <p className="text-xl text-gray-300 max-w-2xl mx-auto mb-10">
           Tingkatkan produktivitas development Anda dengan AI assistant yang memahami Roblox Studio. 
           Dari coding hingga design, kami siap membantu!
         </p>
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-fade-in">
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <Link 
             to="/register"
             className="group flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 rounded-xl font-semibold text-lg transition-all shadow-lg hover:shadow-purple-500/50 transform hover:scale-105"
@@ -163,68 +132,6 @@ const Home = () => {
           >
             Lihat Demo
           </Link>
-        </div>
-
-        {/* Real-time Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mt-16 max-w-4xl mx-auto">
-          {/* Active Users */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all">
-            <div className="flex justify-center mb-3 text-purple-400">
-              <Users className="w-6 h-6" />
-            </div>
-            <div className="text-2xl font-bold mb-1 transition-all duration-500">
-              {stats.activeUsers > 0 ? `${stats.activeUsers}` : '0'}
-            </div>
-            <div className="text-sm text-gray-400">Active Users</div>
-            {stats.activeUsers > 0 && (
-              <div className="mt-2 flex items-center justify-center gap-1 text-xs text-green-400">
-                <span className="animate-pulse">●</span> Live
-              </div>
-            )}
-          </div>
-
-          {/* Total Chats */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all">
-            <div className="flex justify-center mb-3 text-blue-400">
-              <MessageSquare className="w-6 h-6" />
-            </div>
-            <div className="text-2xl font-bold mb-1 transition-all duration-500">
-              {stats.totalChats > 0 ? `${stats.totalChats.toLocaleString()}` : '0'}
-            </div>
-            <div className="text-sm text-gray-400">Chats Generated</div>
-            {stats.totalChats > 0 && (
-              <div className="mt-2 flex items-center justify-center gap-1 text-xs text-green-400">
-                <span className="animate-pulse">●</span> Live
-              </div>
-            )}
-          </div>
-
-          {/* Code Snippets */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all">
-            <div className="flex justify-center mb-3 text-green-400">
-              <Code className="w-6 h-6" />
-            </div>
-            <div className="text-2xl font-bold mb-1 transition-all duration-500">
-              {stats.codeSnippets > 0 ? `${stats.codeSnippets.toLocaleString()}` : '0'}
-            </div>
-            <div className="text-sm text-gray-400">Code Snippets</div>
-            {stats.codeSnippets > 0 && (
-              <div className="mt-2 flex items-center justify-center gap-1 text-xs text-green-400">
-                <span className="animate-pulse">●</span> Live
-              </div>
-            )}
-          </div>
-
-          {/* User Rating */}
-          <div className="bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10 hover:bg-white/10 transition-all">
-            <div className="flex justify-center mb-3 text-yellow-400">
-              <Star className="w-6 h-6" />
-            </div>
-            <div className="text-2xl font-bold mb-1 transition-all duration-500">
-              {stats.userRating}/5
-            </div>
-            <div className="text-sm text-gray-400">User Rating</div>
-          </div>
         </div>
       </section>
 
@@ -267,7 +174,7 @@ const Home = () => {
             </p>
             <div className="space-y-3">
               {benefits.map((benefit, idx) => (
-                <div key={idx} className="flex items-center gap-3 animate-fade-in" style={{animationDelay: `${idx * 0.1}s`}}>
+                <div key={idx} className="flex items-center gap-3">
                   <CheckCircle className="w-5 h-5 text-green-400 flex-shrink-0" />
                   <span className="text-gray-300">{benefit}</span>
                 </div>
@@ -316,7 +223,7 @@ end`}
             Siap Meningkatkan Development Anda?
           </h2>
           <p className="text-lg mb-8 text-blue-100">
-            Bergabung dengan {stats.totalUsers > 0 ? stats.totalUsers : 'ribuan'} developer yang sudah menggunakan Roblox AI Studio
+            Bergabung dengan komunitas developer yang menggunakan Roblox AI Studio
           </p>
           <Link 
             to="/register"
